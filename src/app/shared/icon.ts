@@ -16,6 +16,9 @@ const PATHS: Record<string, string> = {
   up: 'M7 17 17 7M8 7h9v9',
   down: 'M7 7l10 10M17 8v9H8',
   discord: 'M8 12h.01M16 12h.01M5 17c4 2 10 2 14 0l-1.5-9A12 12 0 0 0 14 7l-.5 1h-3L10 7a12 12 0 0 0-3.5 1z',
+  repeat: 'M17 1l4 4-4 4M3 11V9a4 4 0 0 1 4-4h14M7 23l-4-4 4-4M21 13v2a4 4 0 0 1-4 4H3',
+  pause: 'M6 4h4v16H6zM14 4h4v16h-4z',
+  play: 'M6 4l14 8-14 8z',
   archive: 'M21 8v13H3V8M1 3h22v5H1zM10 12h4',
 };
 

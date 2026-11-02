@@ -12,6 +12,9 @@ import {
   Insight,
   InsightPeriod,
   Merchant,
+  Recurrence,
+  RecurrenceRequest,
+  RecurrenceSummary,
   Transaction,
   TransactionRequest,
   TransactionType,
@@ -90,6 +93,22 @@ export class ApiService {
   }
   deleteContribution(goalId: number, contributionId: number) {
     return this.http.delete<void>(`${this.base}/goals/${goalId}/contributions/${contributionId}`);
+  }
+
+  recurrences() {
+    return this.http.get<Recurrence[]>(`${this.base}/recurrences`);
+  }
+  recurrenceSummary() {
+    return this.http.get<RecurrenceSummary>(`${this.base}/recurrences/summary`);
+  }
+  createRecurrence(body: RecurrenceRequest) {
+    return this.http.post<Recurrence>(`${this.base}/recurrences`, body);
+  }
+  updateRecurrence(id: number, body: RecurrenceRequest) {
+    return this.http.put<Recurrence>(`${this.base}/recurrences/${id}`, body);
+  }
+  deleteRecurrence(id: number) {
+    return this.http.delete<void>(`${this.base}/recurrences/${id}`);
   }
 
   discordStatus() {

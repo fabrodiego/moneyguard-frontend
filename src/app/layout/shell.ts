@@ -94,14 +94,14 @@ interface NavItem {
       }
       main { padding: 16px 16px calc(84px + var(--safe-bottom)); }
       .tabbar {
-        display: grid; grid-template-columns: repeat(5, 1fr);
+        display: grid; grid-template-columns: repeat(6, 1fr);
         position: fixed; bottom: 0; left: 0; right: 0; z-index: 10;
         padding: 6px 4px calc(6px + var(--safe-bottom));
         background: rgb(13 18 24 / 0.96); backdrop-filter: blur(10px); border-top: 1px solid var(--border);
       }
       .tabbar a {
         display: grid; justify-items: center; gap: 2px; padding: 6px 0; border-radius: var(--radius-sm);
-        color: var(--text-muted); font-size: 0.7rem; font-weight: 500; text-decoration: none;
+        color: var(--text-muted); font-size: 0.66rem; font-weight: 500; text-decoration: none; white-space: nowrap;
       }
       .tabbar a.active { color: var(--accent); }
     }
@@ -112,7 +112,8 @@ export class Shell {
   protected readonly nav: (NavItem & { short: string })[] = [
     { path: '/', label: 'Visão geral', short: 'Início', icon: 'dashboard' },
     { path: '/lancamentos', label: 'Lançamentos', short: 'Lançar', icon: 'list' },
-    { path: '/categorias', label: 'Categorias', short: 'Categorias', icon: 'tag' },
+    { path: '/assinaturas', label: 'Assinaturas', short: 'Assinat.', icon: 'repeat' },
+    { path: '/categorias', label: 'Categorias', short: 'Categ.', icon: 'tag' },
     { path: '/empresas', label: 'Empresas', short: 'Empresas', icon: 'store' },
     { path: '/metas', label: 'Metas', short: 'Metas', icon: 'target' },
   ];

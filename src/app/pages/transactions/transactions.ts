@@ -79,6 +79,7 @@ interface DayGroup {
                     <span class="sub muted">
                       {{ t.category.name }}@if (t.merchant && t.description) { · {{ t.merchant.name }} }
                       @if (t.source === 'DISCORD') { <span class="badge">Discord</span> }
+                      @if (t.source === 'RECURRENCE') { <span class="badge">Assinatura</span> }
                     </span>
                   </span>
                   <span class="num amount" [class.income]="t.type === 'INCOME'" [class.expense]="t.type === 'EXPENSE'">
