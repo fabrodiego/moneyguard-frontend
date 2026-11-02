@@ -107,6 +107,17 @@ export interface SeriesPoint {
   balance: number;
 }
 
+export interface DiscordLinkStatus {
+  linked: boolean;
+  discordUserId: string | null;
+  linkedAt: string | null;
+}
+
+export interface DiscordLinkCode {
+  code: string;
+  expiresAt: string;
+}
+
 export interface Insight {
   period: InsightPeriod;
   year: number;

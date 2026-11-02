@@ -25,6 +25,10 @@ interface NavItem {
           </a>
         }
       </nav>
+      <a routerLink="/discord" routerLinkActive="active" class="discord-link">
+        <app-icon name="discord" />
+        <span>Bot do Discord</span>
+      </a>
       <div class="user">
         <span class="secondary" [title]="auth.userName()">{{ auth.userName() }}</span>
         <button type="button" class="btn btn-ghost btn-icon" (click)="auth.logout()" aria-label="Sair" title="Sair">
@@ -35,6 +39,8 @@ interface NavItem {
 
     <header class="topbar">
       <app-logo [size]="28" />
+      <span class="spacer"></span>
+      <a class="btn btn-ghost btn-icon" routerLink="/discord" aria-label="Bot do Discord"><app-icon name="discord" /></a>
       <button type="button" class="btn btn-ghost btn-icon" (click)="auth.logout()" aria-label="Sair">
         <app-icon name="logout" />
       </button>
@@ -67,7 +73,13 @@ interface NavItem {
     }
     .sidebar nav a:hover { background: var(--surface-2); color: var(--text-primary); }
     .sidebar nav a.active { background: rgb(34 211 238 / 0.1); color: var(--accent); box-shadow: inset 2px 0 0 var(--accent); }
-    .user { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 4px 0 12px; }
+    .discord-link {
+      margin-top: auto; display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: var(--radius-sm);
+      color: var(--text-secondary); font-weight: 500; text-decoration: none;
+    }
+    .discord-link:hover { background: var(--surface-2); color: var(--text-primary); text-decoration: none; }
+    .discord-link.active { background: rgb(34 211 238 / 0.1); color: var(--accent); }
+    .user { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 0 4px 0 12px; }
     .user span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     main { padding: 28px clamp(16px, 4vw, 40px) 40px; min-width: 0; max-width: 1200px; width: 100%; }
     .topbar, .tabbar { display: none; }
@@ -76,7 +88,7 @@ interface NavItem {
       :host { grid-template-columns: 1fr; }
       .sidebar { display: none; }
       .topbar {
-        display: flex; align-items: center; justify-content: space-between;
+        display: flex; align-items: center; gap: 4px;
         position: sticky; top: 0; z-index: 10; padding: calc(10px + env(safe-area-inset-top, 0px)) 16px 10px;
         background: rgb(7 9 13 / 0.9); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border);
       }

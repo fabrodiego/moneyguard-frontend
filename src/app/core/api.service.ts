@@ -3,6 +3,8 @@ import { Injectable, inject } from '@angular/core';
 import { environment } from '../../environments/environment';
 import {
   Category,
+  DiscordLinkCode,
+  DiscordLinkStatus,
   Contribution,
   Goal,
   GoalRequest,
@@ -88,6 +90,16 @@ export class ApiService {
   }
   deleteContribution(goalId: number, contributionId: number) {
     return this.http.delete<void>(`${this.base}/goals/${goalId}/contributions/${contributionId}`);
+  }
+
+  discordStatus() {
+    return this.http.get<DiscordLinkStatus>(`${this.base}/discord/link`);
+  }
+  discordLinkCode() {
+    return this.http.post<DiscordLinkCode>(`${this.base}/discord/link-code`, {});
+  }
+  discordUnlink() {
+    return this.http.delete<void>(`${this.base}/discord/link`);
   }
 
   insights(period: InsightPeriod, year: number, number: number) {

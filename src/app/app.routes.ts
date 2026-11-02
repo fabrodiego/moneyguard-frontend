@@ -40,6 +40,11 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/merchants/merchants').then((m) => m.MerchantsPage),
       },
       {
+        path: 'discord',
+        title: 'Discord · MoneyGuard',
+        loadComponent: () => import('./pages/discord/discord').then((m) => m.DiscordPage),
+      },
+      {
         path: 'metas',
         title: 'Metas · MoneyGuard',
         loadComponent: () => import('./pages/goals/goals').then((m) => m.GoalsPage),
