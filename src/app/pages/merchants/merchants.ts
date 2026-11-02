@@ -20,7 +20,7 @@ import { Modal } from '../../shared/modal';
           <h1>Empresas</h1>
           <p class="muted sub">
             <app-icon name="discord" [size]="16" /> O bot do Discord usa estes nomes para saber a categoria do gasto.
-            Ex.: "gastei 8 reais na sodexo" → Alimentação.
+            Ex.: "gastei 8 reais na cantina central" → Alimentação.
           </p>
         </div>
         <button type="button" class="btn btn-primary" (click)="openNew()" [disabled]="expenseCategories().length === 0">
@@ -62,7 +62,7 @@ import { Modal } from '../../shared/modal';
         }
         <div class="field">
           <label for="name">Nome</label>
-          <input id="name" class="input" formControlName="name" maxlength="80" placeholder="Ex.: Sodexo" />
+          <input id="name" class="input" formControlName="name" maxlength="80" placeholder="Ex.: Cantina Central" />
         </div>
         <div class="field">
           <label for="category">Categoria</label>

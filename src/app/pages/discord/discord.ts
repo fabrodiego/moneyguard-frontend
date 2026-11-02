@@ -64,7 +64,7 @@ import { Icon } from '../../shared/icon';
       <div class="card">
         <h2 class="card-title">Como usar</h2>
         <ul class="examples">
-          <li><code>acabei de gastar 8 reais na sodexo</code><span class="muted">→ R$ 8,00 · Sodexo · Alimentação · hoje</span></li>
+          <li><code>acabei de gastar 8 reais na cantina central</code><span class="muted">→ R$ 8,00 · Cantina Central · Alimentação · hoje</span></li>
           <li><code>paguei R$ 120,50 de luz ontem</code><span class="muted">→ o bot pergunta a categoria</span></li>
           <li><code>recebi 6.500 de salário</code><span class="muted">→ renda na categoria Salário</span></li>
           <li><code>/resumo</code><span class="muted">→ rendas, gastos e metas do mês</span></li>
