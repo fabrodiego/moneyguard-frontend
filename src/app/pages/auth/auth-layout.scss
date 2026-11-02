@@ -1,0 +1,11 @@
+:host {
+  min-height: 100dvh; display: grid; place-items: center; padding: 24px 16px;
+  background:
+    radial-gradient(600px 400px at 50% -10%, rgb(2 132 199 / 0.22), transparent 70%),
+    var(--bg);
+}
+.box { width: min(400px, 100%); display: grid; gap: 24px; }
+.head { display: grid; justify-items: center; gap: 14px; text-align: center; }
+.head p { margin: 0; color: var(--text-secondary); }
+.card { padding: 24px; box-shadow: var(--shadow); }
+.foot { text-align: center; color: var(--text-secondary); font-size: 0.9rem; }

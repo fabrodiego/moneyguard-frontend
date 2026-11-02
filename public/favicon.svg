@@ -1,0 +1,17 @@
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+                    <defs>
+                    <filter id="cyanGlow" x="-20%" y="-20%" width="140%" height="140%">
+                        <feGaussianBlur stdDeviation="16" result="blur" />
+                        <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                    </filter>
+                </defs>
+                    <rect width="512" height="512" rx="22" fill="#090d14" />
+                    <g>
+                    <!-- Shield Base Cut -->
+                    <path d="M 256,80 L 400,140 V 270 C 400,360 256,432 256,432 C 256,432 112,360 112,270 V 140 Z" 
+                          fill="none" stroke="#0284c7" stroke-width="44" stroke-linejoin="round" stroke-linecap="round" filter="url(#cyanGlow)" />
+                    <!-- Center Geometric 'M' Shield Core -->
+                    <path d="M 175,300 V 210 L 256,280 L 337,210 V 300" 
+                          fill="none" stroke="#0284c7" stroke-width="38" stroke-linejoin="round" stroke-linecap="round"/>
+                    </g>
+                </svg>
