@@ -67,7 +67,9 @@ import { Icon } from '../../shared/icon';
           <li><code>acabei de gastar 8 reais na cantina central</code><span class="muted">→ R$ 8,00 · Cantina Central · Alimentação · hoje</span></li>
           <li><code>paguei R$ 120,50 de luz ontem</code><span class="muted">→ o bot pergunta a categoria</span></li>
           <li><code>recebi 6.500 de salário</code><span class="muted">→ renda na categoria Salário</span></li>
+          <li><code>assinei streaming 55,90 todo dia 2</code><span class="muted">→ cria a assinatura (lançada todo mês)</span></li>
           <li><code>/resumo</code><span class="muted">→ rendas, gastos e metas do mês</span></li>
+          <li><code>/assinaturas</code><span class="muted">→ assinaturas e próximas cobranças</span></li>
         </ul>
         <p class="muted small">
           <app-icon name="store" [size]="14" /> Cadastre suas empresas em <b>Empresas</b> para o bot acertar a categoria sozinho.
