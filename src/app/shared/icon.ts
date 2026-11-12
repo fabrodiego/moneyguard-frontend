@@ -19,6 +19,7 @@ const PATHS: Record<string, string> = {
   repeat: 'M17 1l4 4-4 4M3 11V9a4 4 0 0 1 4-4h14M7 23l-4-4 4-4M21 13v2a4 4 0 0 1-4 4H3',
   pause: 'M6 4h4v16H6zM14 4h4v16h-4z',
   play: 'M6 4l14 8-14 8z',
+  chevron: 'M6 9l6 6 6-6',
   upload: 'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12',
   check: 'M20 6 9 17l-5-5',
   skip: 'M5 4l10 8-10 8zM19 5v14',

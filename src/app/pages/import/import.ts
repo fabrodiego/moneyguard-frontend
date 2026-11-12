@@ -5,6 +5,7 @@ import { forkJoin, of, switchMap } from 'rxjs';
 import { ApiService } from '../../core/api.service';
 import { BrlPipe, DateBrPipe, errorMessage } from '../../core/format';
 import { Category, ImportItem, ImportPreview, Merchant, TransactionType } from '../../core/models';
+import { Combobox, ComboOption } from '../../shared/combobox';
 import { Icon } from '../../shared/icon';
 import { Modal } from '../../shared/modal';
 
@@ -20,7 +21,7 @@ function norm(text: string): string {
 
 @Component({
   selector: 'app-import',
-  imports: [RouterLink, BrlPipe, DateBrPipe, Icon, Modal],
+  imports: [RouterLink, BrlPipe, DateBrPipe, Combobox, Icon, Modal],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="page">
@@ -99,27 +100,15 @@ function norm(text: string): string {
               <div class="form-grid">
                 <div class="field">
                   <label for="merchant">Empresa</label>
-                  <div class="with-btn">
-                    <select id="merchant" class="input" (change)="onMerchant($any($event.target).value)">
-                      <option value="" [selected]="merchantId() === null">Nenhuma</option>
-                      @for (m of merchantsForType(); track m.id) {
-                        <option [value]="m.id" [selected]="m.id === merchantId()">{{ m.name }} · {{ m.category.name }}</option>
-                      }
-                    </select>
-                    <button type="button" class="btn" (click)="openNewMerchant()"><app-icon name="plus" [size]="16" /> Nova</button>
-                  </div>
+                  <app-combobox inputId="merchant" [options]="merchantOptions()" [value]="merchantId()" [allowNone]="true"
+                                placeholder="Digite o nome da empresa" createLabel="Criar empresa"
+                                (valueChange)="onMerchant($event)" (create)="openNewMerchant($event)" />
                 </div>
                 <div class="field">
                   <label for="category">Categoria</label>
-                  <div class="with-btn">
-                    <select id="category" class="input" (change)="onCategory($any($event.target).value)">
-                      <option value="" disabled [selected]="categoryId() === null">Selecione</option>
-                      @for (c of categoriesForType(); track c.id) {
-                        <option [value]="c.id" [selected]="c.id === categoryId()">{{ c.name }}</option>
-                      }
-                    </select>
-                    <button type="button" class="btn" (click)="openNewCategory()"><app-icon name="plus" [size]="16" /> Nova</button>
-                  </div>
+                  <app-combobox inputId="category" [options]="categoryOptions()" [value]="categoryId()"
+                                placeholder="Digite o nome da categoria" createLabel="Criar categoria"
+                                (valueChange)="categoryId.set($event)" (create)="openNewCategory($event)" />
                 </div>
                 <div class="grid grid-2">
                   <div class="field">
@@ -197,13 +186,10 @@ function norm(text: string): string {
         </div>
         <div class="field">
           <label for="m-cat">Categoria da empresa</label>
-          <select id="m-cat" class="input" (change)="mCategory.set($any($event.target).value)">
-            <option value="" disabled [selected]="mCategory() === ''">Selecione</option>
-            @for (c of categoriesForType(); track c.id) {
-              <option [value]="c.id" [selected]="String(c.id) === mCategory()">{{ c.name }}</option>
-            }
-            <option [value]="NEW" [selected]="mCategory() === NEW">+ Nova categoria…</option>
-          </select>
+          <app-combobox inputId="m-cat" [options]="categoryOptions()" [value]="mCategory() === NEW || !mCategory() ? null : +mCategory()"
+                        [placeholder]="mCategory() === NEW ? 'Nova categoria (abaixo)' : 'Digite o nome da categoria'"
+                        createLabel="Nova categoria" (valueChange)="mCategory.set($event === null ? '' : String($event))"
+                        (create)="mCategory.set(NEW); mNewCategory.set($event)" />
         </div>
         @if (mCategory() === NEW) {
           <div class="field">
@@ -258,9 +244,6 @@ function norm(text: string): string {
     .hint { display: flex; gap: 6px; align-items: center; font-size: 0.9rem; color: var(--text-secondary);
             background: var(--surface-2); border-radius: var(--radius-sm); padding: 8px 12px; }
     .hint.ok { color: var(--success); }
-    .with-btn { display: flex; gap: 8px; }
-    .with-btn .input { flex: 1; min-width: 0; }
-    .with-btn .btn { flex: none; }
     .actions { flex-wrap: wrap; }
     .extras { display: grid; gap: 8px; font-size: 0.9rem; }
     .extras p { margin: 0; }
@@ -323,6 +306,12 @@ export class ImportPage {
   protected readonly merchantsForType = computed(() =>
     this.merchants().filter((m) => m.category.type === this.currentType()),
   );
+  protected readonly merchantOptions = computed<ComboOption[]>(() =>
+    this.merchantsForType().map((m) => ({ id: m.id, label: m.name, hint: m.category.name })),
+  );
+  protected readonly categoryOptions = computed<ComboOption[]>(() =>
+    this.categoriesForType().map((c) => ({ id: c.id, label: c.name })),
+  );
   protected readonly approvedCount = computed(() => this.decisions().filter((d) => d === 'approved').length);
   protected readonly skippedCount = computed(() => this.decisions().filter((d) => d === 'skipped').length);
   protected readonly canGoBack = computed(() => this.decisions().at(-1) === 'skipped');
@@ -361,15 +350,10 @@ export class ImportPage {
     this.error.set(null);
   }
 
-  protected onMerchant(value: string): void {
-    const id = value ? Number(value) : null;
+  protected onMerchant(id: number | null): void {
     this.merchantId.set(id);
     const merchant = this.merchants().find((m) => m.id === id);
     if (merchant) this.categoryId.set(merchant.category.id);
-  }
-
-  protected onCategory(value: string): void {
-    this.categoryId.set(value ? Number(value) : null);
   }
 
   protected skip(): void {
@@ -430,18 +414,19 @@ export class ImportPage {
       });
   }
 
-  protected openNewMerchant(): void {
+  /** name = texto digitado na busca; vazio usa o texto do banco. */
+  protected openNewMerchant(name = ''): void {
     const item = this.current();
     this.modalError.set(null);
-    this.mName.set((item?.description ?? '').slice(0, 80));
+    this.mName.set((name || item?.description || '').slice(0, 80));
     this.mCategory.set(this.categoryId() ? String(this.categoryId()) : this.categoriesForType().length ? '' : NEW);
     this.mNewCategory.set('');
     this.modal.set('merchant');
   }
 
-  protected openNewCategory(): void {
+  protected openNewCategory(name = ''): void {
     this.modalError.set(null);
-    this.cName.set('');
+    this.cName.set(name.slice(0, 60));
     this.modal.set('category');
   }
 
