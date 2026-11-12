@@ -22,9 +22,12 @@ interface DayGroup {
     <section class="page">
       <div class="page-header">
         <h1>Lançamentos</h1>
-        <button type="button" class="btn btn-primary" (click)="openNew()" [disabled]="categories().length === 0">
-          <app-icon name="plus" [size]="18" /> Novo
-        </button>
+        <div class="row">
+          <a class="btn" routerLink="/importar"><app-icon name="upload" [size]="18" /> Importar</a>
+          <button type="button" class="btn btn-primary" (click)="openNew()" [disabled]="categories().length === 0">
+            <app-icon name="plus" [size]="18" /> Novo
+          </button>
+        </div>
       </div>
 
       @if (loaded() && categories().length === 0) {
@@ -80,6 +83,7 @@ interface DayGroup {
                       {{ t.category.name }}@if (t.merchant && t.description) { · {{ t.merchant.name }} }
                       @if (t.source === 'DISCORD') { <span class="badge">Discord</span> }
                       @if (t.source === 'RECURRENCE') { <span class="badge">Assinatura</span> }
+                      @if (t.source === 'IMPORT') { <span class="badge">Importado</span> }
                     </span>
                   </span>
                   <span class="num amount" [class.income]="t.type === 'INCOME'" [class.expense]="t.type === 'EXPENSE'">

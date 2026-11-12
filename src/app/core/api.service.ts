@@ -9,6 +9,8 @@ import {
   Goal,
   GoalRequest,
   GoalSummary,
+  ImportApproveRequest,
+  ImportPreview,
   Insight,
   InsightPeriod,
   Merchant,
@@ -119,6 +121,15 @@ export class ApiService {
   }
   discordUnlink() {
     return this.http.delete<void>(`${this.base}/discord/link`);
+  }
+
+  importPreview(file: File) {
+    const form = new FormData();
+    form.append('file', file);
+    return this.http.post<ImportPreview>(`${this.base}/imports/preview`, form);
+  }
+  importApprove(body: ImportApproveRequest) {
+    return this.http.post<Transaction>(`${this.base}/imports/approve`, body);
   }
 
   insights(period: InsightPeriod, year: number, number: number) {

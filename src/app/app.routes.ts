@@ -30,6 +30,11 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/transactions/transactions').then((m) => m.TransactionsPage),
       },
       {
+        path: 'importar',
+        title: 'Importar extrato · MoneyGuard',
+        loadComponent: () => import('./pages/import/import').then((m) => m.ImportPage),
+      },
+      {
         path: 'assinaturas',
         title: 'Assinaturas · MoneyGuard',
         loadComponent: () => import('./pages/recurrences/recurrences').then((m) => m.RecurrencesPage),

@@ -1,5 +1,5 @@
 export type TransactionType = 'EXPENSE' | 'INCOME';
-export type TransactionSource = 'WEB' | 'DISCORD' | 'RECURRENCE';
+export type TransactionSource = 'WEB' | 'DISCORD' | 'RECURRENCE' | 'IMPORT';
 export type Frequency = 'MONTHLY' | 'YEARLY';
 export type InsightPeriod = 'MONTH' | 'QUARTER' | 'SEMESTER' | 'YEAR';
 
@@ -168,4 +168,42 @@ export interface Insight {
   expensesByCategory: CategoryTotal[];
   incomesByCategory: CategoryTotal[];
   series: SeriesPoint[];
+}
+
+export type ImportKind = 'STATEMENT' | 'CARD_BILL';
+
+/** Linha lida do extrato/fatura, ainda nao gravada. */
+export interface ImportItem {
+  importKey: string;
+  occurredOn: string;
+  /** Texto do banco: vira apelido da empresa ao aprovar. */
+  description: string;
+  suggestedDescription: string;
+  amount: number;
+  type: TransactionType;
+  history: string | null;
+  installment: string | null;
+  ownTransfer: boolean;
+  alreadyImported: boolean;
+  suggestion: Merchant | null;
+}
+
+export interface ImportPreview {
+  kind: ImportKind;
+  items: ImportItem[];
+  ignored: { date: string; description: string; amount: number; reason: string }[];
+  declaredTotal: number | null;
+  parsedTotal: number | null;
+  warning: string | null;
+}
+
+export interface ImportApproveRequest {
+  importKey: string;
+  type: TransactionType;
+  categoryId: number;
+  merchantId: number | null;
+  amount: number;
+  description: string | null;
+  occurredOn: string;
+  alias: string | null;
 }
