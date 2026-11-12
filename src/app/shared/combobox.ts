@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, ElementRef, computed, input, output, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, computed, forwardRef, input, model, output, signal, viewChild } from '@angular/core';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Icon } from './icon';
 
 export interface ComboOption {
@@ -20,11 +21,13 @@ function fold(text: string): string {
 /**
  * Campo de busca com lista: digita e filtra (comeca com > inicio de palavra > contem, este so com 3+ letras).
  * Setas navegam, Enter escolhe, Esc fecha. Opcional: linha "+ Criar" com o texto digitado.
+ * Funciona com [value]/(valueChange) ou com formControlName.
  */
 @Component({
   selector: 'app-combobox',
   imports: [Icon],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [{ provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => Combobox), multi: true }],
   template: `
     <div class="combo" [class.open]="open()">
       <input #field class="input" type="text" autocomplete="off" spellcheck="false"
@@ -103,10 +106,10 @@ function fold(text: string): string {
     .empty { color: var(--text-muted); cursor: default; }
   `,
 })
-export class Combobox {
+export class Combobox implements ControlValueAccessor {
   readonly inputId = input.required<string>();
   readonly options = input.required<ComboOption[]>();
-  readonly value = input<number | null>(null);
+  readonly value = model<number | null>(null);
   readonly placeholder = input('Digite para buscar');
   /** Permite "nenhum" (limpar). */
   readonly allowNone = input(false);
@@ -114,7 +117,6 @@ export class Combobox {
   /** Se definido, mostra a linha "+ Criar ..." quando o texto nao bate com nenhuma opcao. */
   readonly createLabel = input<string | null>(null);
 
-  readonly valueChange = output<number | null>();
   /** Texto digitado (pode ser vazio). */
   readonly create = output<string>();
 
@@ -158,6 +160,25 @@ export class Combobox {
     return !this.options().some((o) => fold(o.label) === q) || !q;
   });
 
+  private onChange: (v: number | null) => void = () => {};
+  private onTouched: () => void = () => {};
+
+  writeValue(v: number | null): void {
+    this.value.set(v ?? null);
+  }
+  registerOnChange(fn: (v: number | null) => void): void {
+    this.onChange = fn;
+  }
+  registerOnTouched(fn: () => void): void {
+    this.onTouched = fn;
+  }
+
+  /** Atualiza o form antes de avisar quem escuta (valueChange), para quem le o form ja ver o novo valor. */
+  private emit(v: number | null): void {
+    this.onChange(v);
+    this.value.set(v);
+  }
+
   private get count(): number {
     return this.filtered().length + (this.canCreate() ? 1 : 0);
   }
@@ -183,7 +204,8 @@ export class Combobox {
 
   protected onBlur(): void {
     // texto apagado + permite nenhum = limpa; senao volta a mostrar o escolhido
-    if (this.allowNone() && this.editing() && this.query() === '' && this.wasCleared) this.valueChange.emit(null);
+    if (this.allowNone() && this.editing() && this.query() === '' && this.wasCleared) this.emit(null);
+    this.onTouched();
     this.wasCleared = false;
     this.close();
   }
@@ -228,19 +250,19 @@ export class Combobox {
   }
 
   protected pick(o: ComboOption): void {
-    this.valueChange.emit(o.id);
+    this.emit(o.id);
     this.close();
     this.field().nativeElement.blur();
   }
 
   protected pickNone(): void {
-    this.valueChange.emit(null);
+    this.emit(null);
     this.close();
     this.field().nativeElement.blur();
   }
 
   protected clear(): void {
-    this.valueChange.emit(null);
+    this.emit(null);
     this.query.set('');
     this.field().nativeElement.focus();
   }

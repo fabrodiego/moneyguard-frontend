@@ -6,12 +6,13 @@ import { ApiService } from '../../core/api.service';
 import { BrlPipe, DateBrPipe, errorMessage, monthShort, parseAmount } from '../../core/format';
 import { Category, Frequency, Merchant, Recurrence, RecurrenceSummary, TransactionType } from '../../core/models';
 import { categoryColor } from '../../shared/category-breakdown';
+import { Combobox, ComboOption } from '../../shared/combobox';
 import { Icon } from '../../shared/icon';
 import { Modal } from '../../shared/modal';
 
 @Component({
   selector: 'app-recurrences',
-  imports: [ReactiveFormsModule, RouterLink, BrlPipe, DateBrPipe, Icon, Modal],
+  imports: [ReactiveFormsModule, RouterLink, BrlPipe, DateBrPipe, Combobox, Icon, Modal],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="page">
@@ -116,22 +117,16 @@ import { Modal } from '../../shared/modal';
         </div>
         <div class="field">
           <label for="rcat">Categoria</label>
-          <select id="rcat" class="input" formControlName="categoryId">
-            <option [ngValue]="null" disabled>Selecione</option>
-            @for (c of formCategories(); track c.id) {
-              <option [ngValue]="c.id">{{ c.name }}</option>
-            }
-          </select>
+          <app-combobox inputId="rcat" formControlName="categoryId" [options]="categoryOptions()"
+                        placeholder="Digite o nome da categoria" createLabel="Criar categoria"
+                        (create)="createCategory($event)" />
         </div>
-        @if (formType() === 'EXPENSE' && merchants().length > 0) {
+        @if (formType() === 'EXPENSE') {
           <div class="field">
             <label for="rmerchant">Empresa (opcional)</label>
-            <select id="rmerchant" class="input" formControlName="merchantId">
-              <option [ngValue]="null">Nenhuma</option>
-              @for (m of merchants(); track m.id) {
-                <option [ngValue]="m.id">{{ m.name }}</option>
-              }
-            </select>
+            <app-combobox inputId="rmerchant" formControlName="merchantId" [options]="merchantOptions()" [allowNone]="true"
+                          placeholder="Digite o nome da empresa" createLabel="Criar empresa"
+                          (valueChange)="onMerchantChange()" (create)="createMerchant($event)" />
           </div>
         }
         <div class="segmented toggle" role="group" aria-label="Frequência">
@@ -223,6 +218,10 @@ export class RecurrencesPage {
   protected readonly formError = signal<string | null>(null);
 
   protected readonly formCategories = computed(() => this.categories().filter((c) => c.type === this.formType()));
+  protected readonly categoryOptions = computed<ComboOption[]>(() => this.formCategories().map((c) => ({ id: c.id, label: c.name })));
+  protected readonly merchantOptions = computed<ComboOption[]>(() =>
+    this.merchants().map((m) => ({ id: m.id, label: m.name, hint: m.category.name })),
+  );
   protected readonly merchants = computed(() => this.allMerchants().filter((m) => m.category.type === 'EXPENSE'));
 
   protected readonly form = this.fb.group({
@@ -248,6 +247,38 @@ export class RecurrencesPage {
     return r.frequency === 'MONTHLY'
       ? `todo dia ${r.dayOfMonth}`
       : `todo ano em ${String(r.dayOfMonth).padStart(2, '0')}/${monthShort(r.monthOfYear ?? 1)}`;
+  }
+
+  /** Escolher a empresa preenche a categoria dela. */
+  protected onMerchantChange(): void {
+    const merchant = this.merchants().find((m) => m.id === this.form.value.merchantId);
+    if (merchant) this.form.patchValue({ categoryId: merchant.category.id });
+  }
+
+  protected createCategory(name: string): void {
+    if (!name) return this.formError.set('Digite o nome da nova categoria no campo.');
+    this.formError.set(null);
+    this.api.createCategory({ name, type: this.formType(), color: null }).subscribe({
+      next: (c) => {
+        this.categories.update((list) => [...list, c]);
+        this.form.patchValue({ categoryId: c.id });
+      },
+      error: (err) => this.formError.set(errorMessage(err)),
+    });
+  }
+
+  protected createMerchant(name: string): void {
+    const categoryId = this.form.value.categoryId;
+    if (!name) return this.formError.set('Digite o nome da nova empresa no campo.');
+    if (!categoryId) return this.formError.set('Escolha a categoria antes de criar a empresa.');
+    this.formError.set(null);
+    this.api.createMerchant({ name, categoryId }).subscribe({
+      next: (m) => {
+        this.allMerchants.update((list) => [...list, m]);
+        this.form.patchValue({ merchantId: m.id });
+      },
+      error: (err) => this.formError.set(errorMessage(err)),
+    });
   }
 
   protected setType(t: TransactionType): void {

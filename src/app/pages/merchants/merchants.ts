@@ -6,12 +6,13 @@ import { ApiService } from '../../core/api.service';
 import { errorMessage } from '../../core/format';
 import { Category, Merchant } from '../../core/models';
 import { categoryColor } from '../../shared/category-breakdown';
+import { Combobox, ComboOption } from '../../shared/combobox';
 import { Icon } from '../../shared/icon';
 import { Modal } from '../../shared/modal';
 
 @Component({
   selector: 'app-merchants',
-  imports: [ReactiveFormsModule, RouterLink, Icon, Modal],
+  imports: [ReactiveFormsModule, RouterLink, Combobox, Icon, Modal],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="page">
@@ -66,12 +67,9 @@ import { Modal } from '../../shared/modal';
         </div>
         <div class="field">
           <label for="category">Categoria</label>
-          <select id="category" class="input" formControlName="categoryId">
-            <option [ngValue]="null" disabled>Selecione</option>
-            @for (c of expenseCategories(); track c.id) {
-              <option [ngValue]="c.id">{{ c.name }}</option>
-            }
-          </select>
+          <app-combobox inputId="category" formControlName="categoryId" [options]="categoryOptions()"
+                        placeholder="Digite o nome da categoria" createLabel="Criar categoria"
+                        (create)="createCategory($event)" />
         </div>
         <div class="row">
           <span class="spacer"></span>
@@ -103,6 +101,7 @@ export class MerchantsPage {
   protected readonly formError = signal<string | null>(null);
 
   protected readonly expenseCategories = computed(() => this.categories().filter((c) => c.type === 'EXPENSE'));
+  protected readonly categoryOptions = computed<ComboOption[]>(() => this.expenseCategories().map((c) => ({ id: c.id, label: c.name })));
 
   protected readonly form = this.fb.group({
     name: this.fb.nonNullable.control('', [Validators.required, Validators.maxLength(80)]),
@@ -129,6 +128,18 @@ export class MerchantsPage {
     this.formError.set(null);
     this.form.reset({ name: m.name, categoryId: m.category.id });
     this.modalOpen.set(true);
+  }
+
+  protected createCategory(name: string): void {
+    if (!name) return this.formError.set('Digite o nome da nova categoria no campo.');
+    this.formError.set(null);
+    this.api.createCategory({ name, type: 'EXPENSE', color: null }).subscribe({
+      next: (c) => {
+        this.categories.update((list) => [...list, c]);
+        this.form.patchValue({ categoryId: c.id });
+      },
+      error: (err) => this.formError.set(errorMessage(err)),
+    });
   }
 
   protected save(): void {
