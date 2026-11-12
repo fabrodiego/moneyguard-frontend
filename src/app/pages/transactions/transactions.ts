@@ -6,6 +6,7 @@ import { ApiService } from '../../core/api.service';
 import { BrlPipe, DateBrPipe, errorMessage, parseAmount, periodLabel, shiftPeriod, toIso, todayIso } from '../../core/format';
 import { Category, Merchant, Transaction, TransactionType } from '../../core/models';
 import { categoryColor } from '../../shared/category-breakdown';
+import { Combobox, ComboOption } from '../../shared/combobox';
 import { Icon } from '../../shared/icon';
 import { Modal } from '../../shared/modal';
 
@@ -16,7 +17,7 @@ interface DayGroup {
 
 @Component({
   selector: 'app-transactions',
-  imports: [ReactiveFormsModule, RouterLink, BrlPipe, DateBrPipe, Icon, Modal],
+  imports: [ReactiveFormsModule, RouterLink, BrlPipe, DateBrPipe, Combobox, Icon, Modal],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="page">
@@ -47,13 +48,9 @@ interface DayGroup {
           <button type="button" [attr.aria-pressed]="typeFilter() === 'EXPENSE'" (click)="setType('EXPENSE')">Gastos</button>
           <button type="button" [attr.aria-pressed]="typeFilter() === 'INCOME'" (click)="setType('INCOME')">Rendas</button>
         </div>
-        <select class="input cat-filter" aria-label="Categoria" [value]="categoryFilter() ?? ''"
-                (change)="setCategory($any($event.target).value)">
-          <option value="">Todas as categorias</option>
-          @for (c of filterCategories(); track c.id) {
-            <option [value]="c.id">{{ c.name }}</option>
-          }
-        </select>
+        <app-combobox class="cat-filter" inputId="cat-filter" [options]="filterOptions()" [value]="categoryFilter()"
+                      [allowNone]="true" noneLabel="Todas as categorias" placeholder="Todas as categorias"
+                      (valueChange)="categoryFilter.set($event)" />
       </div>
 
       <div class="grid grid-3 totals">
@@ -112,22 +109,16 @@ interface DayGroup {
         </div>
         <div class="field">
           <label for="category">Categoria</label>
-          <select id="category" class="input" formControlName="categoryId">
-            <option [ngValue]="null" disabled>Selecione</option>
-            @for (c of formCategories(); track c.id) {
-              <option [ngValue]="c.id">{{ c.name }}</option>
-            }
-          </select>
+          <app-combobox inputId="category" formControlName="categoryId" [options]="categoryOptions()"
+                        placeholder="Digite o nome da categoria" createLabel="Criar categoria"
+                        (create)="createCategory($event)" />
         </div>
         @if (formType() === 'EXPENSE') {
           <div class="field">
             <label for="merchant">Empresa (opcional)</label>
-            <select id="merchant" class="input" formControlName="merchantId" (change)="onMerchantChange()">
-              <option [ngValue]="null">Nenhuma</option>
-              @for (m of expenseMerchants(); track m.id) {
-                <option [ngValue]="m.id">{{ m.name }}</option>
-              }
-            </select>
+            <app-combobox inputId="merchant" formControlName="merchantId" [options]="merchantOptions()" [allowNone]="true"
+                          placeholder="Digite o nome da empresa" createLabel="Criar empresa"
+                          (valueChange)="onMerchantChange()" (create)="createMerchant($event)" />
           </div>
         }
         <div class="grid grid-2">
@@ -155,7 +146,7 @@ interface DayGroup {
     .filters { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
     .nav { display: flex; align-items: center; gap: 4px; }
     .period-label { min-width: 150px; text-align: center; font-weight: 600; }
-    .cat-filter { width: auto; min-width: 200px; }
+    .cat-filter { width: 240px; }
     .totals .card { display: grid; gap: 2px; padding: 14px 18px; }
     .totals b { font-size: 1.2rem; }
     .list-card { padding: 8px 18px; }
@@ -225,6 +216,13 @@ export class TransactionsPage {
   });
   protected readonly formCategories = computed(() => this.categories().filter((c) => c.type === this.formType()));
   protected readonly expenseMerchants = computed(() => this.merchants().filter((m) => m.category.type === 'EXPENSE'));
+  protected readonly filterOptions = computed<ComboOption[]>(() =>
+    this.filterCategories().map((c) => ({ id: c.id, label: c.name, hint: this.typeFilter() ? undefined : c.type === 'EXPENSE' ? 'gasto' : 'renda' })),
+  );
+  protected readonly categoryOptions = computed<ComboOption[]>(() => this.formCategories().map((c) => ({ id: c.id, label: c.name })));
+  protected readonly merchantOptions = computed<ComboOption[]>(() =>
+    this.expenseMerchants().map((m) => ({ id: m.id, label: m.name, hint: m.category.name })),
+  );
 
   protected readonly totals = computed(() =>
     this.items().reduce(
@@ -275,10 +273,6 @@ export class TransactionsPage {
     if (t && cat && cat.type !== t) this.categoryFilter.set(null);
   }
 
-  protected setCategory(value: string): void {
-    this.categoryFilter.set(value ? Number(value) : null);
-  }
-
   protected openNew(): void {
     this.editing.set(null);
     this.formError.set(null);
@@ -315,6 +309,34 @@ export class TransactionsPage {
   protected onMerchantChange(): void {
     const merchant = this.merchants().find((m) => m.id === this.form.value.merchantId);
     if (merchant) this.form.patchValue({ categoryId: merchant.category.id });
+  }
+
+  /** Cria a categoria com o nome digitado na busca (tipo = gasto/renda do formulario). */
+  protected createCategory(name: string): void {
+    if (!name) return this.formError.set('Digite o nome da nova categoria no campo.');
+    this.formError.set(null);
+    this.api.createCategory({ name, type: this.formType(), color: null }).subscribe({
+      next: (c) => {
+        this.categories.update((list) => [...list, c]);
+        this.form.patchValue({ categoryId: c.id });
+      },
+      error: (err) => this.formError.set(errorMessage(err)),
+    });
+  }
+
+  /** Cria a empresa com o nome digitado, ligada a categoria escolhida. */
+  protected createMerchant(name: string): void {
+    const categoryId = this.form.value.categoryId;
+    if (!name) return this.formError.set('Digite o nome da nova empresa no campo.');
+    if (!categoryId) return this.formError.set('Escolha a categoria antes de criar a empresa.');
+    this.formError.set(null);
+    this.api.createMerchant({ name, categoryId }).subscribe({
+      next: (m) => {
+        this.merchants.update((list) => [...list, m]);
+        this.form.patchValue({ merchantId: m.id });
+      },
+      error: (err) => this.formError.set(errorMessage(err)),
+    });
   }
 
   protected save(): void {
