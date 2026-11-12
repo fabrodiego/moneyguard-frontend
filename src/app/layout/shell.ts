@@ -18,7 +18,7 @@ interface NavItem {
     <aside class="sidebar">
       <app-logo class="brand" />
       <nav aria-label="Principal">
-        @for (item of nav; track item.path) {
+        @for (item of sideNav; track item.path) {
           <a [routerLink]="item.path" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: item.path === '/' }">
             <app-icon [name]="item.icon" />
             <span>{{ item.label }}</span>
@@ -116,5 +116,11 @@ export class Shell {
     { path: '/categorias', label: 'Categorias', short: 'Categ.', icon: 'tag' },
     { path: '/empresas', label: 'Empresas', short: 'Empresas', icon: 'store' },
     { path: '/metas', label: 'Metas', short: 'Metas', icon: 'target' },
+  ];
+  /** No celular a barra tem 6 abas; "Importar" fica no topo da tela de Lançamentos. */
+  protected readonly sideNav: NavItem[] = [
+    ...this.nav.slice(0, 2),
+    { path: '/importar', label: 'Importar extrato', icon: 'upload' },
+    ...this.nav.slice(2),
   ];
 }
